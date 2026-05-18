@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Let's Build Our Game! — Year 5 Digital Technologies</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --coral:#FF6B6B;--sky:#54A0FF;--mint:#1DD1A1;--amber:#FECA57;
+  --purple:#5F27CD;--pink:#FF9FF3;--navy:#1A1A2E;--dark:#16213E;
+  --card:rgba(15,52,96,.65);--white:#FFFFFF;--g1:#E0E6FF;--g2:#7A8BB0;
+  --r:14px;--rl:20px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Nunito',sans-serif;background:var(--navy);color:var(--white);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:
+  radial-gradient(ellipse at 10% 10%,rgba(84,160,255,.07) 0%,transparent 50%),
+  radial-gradient(ellipse at 90% 90%,rgba(29,209,161,.05) 0%,transparent 50%),
+  radial-gradient(ellipse at 50% 50%,rgba(95,39,205,.04) 0%,transparent 70%);
+  pointer-events:none;z-index:0;}
+
+/* PROGRESS */
+.pbar-wrap{position:fixed;top:0;left:0;right:0;height:4px;background:rgba(255,255,255,.08);z-index:200;}
+.pbar-fill{height:4px;background:linear-gradient(90deg,var(--coral),var(--amber));width:0%;transition:width .4s ease;}
+
+/* NAV */
+.nav{position:fixed;top:4px;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:9px 18px;background:rgba(26,26,46,.93);backdrop-filter:blur(20px);border-bottom:0.5px solid rgba(255,255,255,.08);z-index:199;}
+.nav-l .nav-t{font-size:14px;font-weight:800;color:var(--white);}
+.nav-l .nav-s{font-size:10px;color:var(--g2);margin-top:1px;letter-spacing:.4px;font-family:'Space Mono',monospace;}
+.pill{background:rgba(84,160,255,.15);color:var(--sky);font-size:11px;font-weight:700;font-family:'Space Mono',monospace;padding:4px 12px;border-radius:99px;border:0.5px solid rgba(84,160,255,.35);}
+
+/* SLIDES */
+.slides{padding-top:62px;}
+.slide{display:none;min-height:calc(100vh - 62px);padding:20px 18px 90px;position:relative;z-index:1;max-width:700px;margin:0 auto;}
+.slide.on{display:block;animation:rise .28s ease;}
+@keyframes rise{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+/* CARDS */
+.card{background:var(--card);border:0.5px solid rgba(255,255,255,.1);border-radius:var(--rl);padding:18px 20px;margin-bottom:12px;backdrop-filter:blur(6px);}
+.accent{border-radius:var(--rl);padding:18px 20px;margin-bottom:12px;}
+.slbl{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;font-family:'Space Mono',monospace;}
+.sh{font-size:21px;font-weight:900;line-height:1.2;margin-bottom:7px;}
+.sb{font-size:13.5px;line-height:1.7;color:var(--g1);}
+
+/* BOTTOM NAV */
+.bnav{position:fixed;bottom:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:11px 18px 14px;background:rgba(26,26,46,.96);backdrop-filter:blur(20px);border-top:0.5px solid rgba(255,255,255,.08);z-index:199;gap:10px;}
+.nbtn{border:none;border-radius:99px;padding:10px 22px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;transition:all .15s;}
+.nbtn.sec{background:rgba(255,255,255,.08);color:var(--white);border:0.5px solid rgba(255,255,255,.15);}
+.nbtn.sec:hover{background:rgba(255,255,255,.15);}
+.nbtn.pri{background:var(--sky);color:var(--navy);}
+.nbtn.pri:hover{filter:brightness(1.1);}
+.dots{display:flex;gap:5px;align-items:center;}
+.dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.18);cursor:pointer;transition:all .2s;}
+.dot.on{width:22px;border-radius:4px;background:var(--sky);}
+
+/* ── ACTIVITY: DRAG & DROP MATCH ── */
+.match-wrap{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;}
+.match-col-title{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--g2);margin-bottom:8px;font-family:'Space Mono',monospace;}
+.match-source,.match-target-list{display:flex;flex-direction:column;gap:7px;}
+.drag-chip{background:rgba(84,160,255,.18);border:1.5px solid rgba(84,160,255,.4);border-radius:10px;padding:10px 13px;font-size:12px;font-weight:700;color:var(--sky);cursor:grab;transition:all .18s;user-select:none;touch-action:none;}
+.drag-chip:hover{background:rgba(84,160,255,.3);transform:scale(1.02);}
+.drag-chip.dragging{opacity:.5;transform:scale(.96);}
+.drag-chip.matched{background:rgba(29,209,161,.2);border-color:var(--mint);color:var(--mint);cursor:default;}
+.drag-chip.wrong-flash{background:rgba(255,107,107,.2);border-color:var(--coral);animation:shake .35s ease;}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}
+}
+.drop-zone{background:rgba(255,255,255,.04);border:1.5px dashed rgba(255,255,255,.2);border-radius:10px;padding:10px 13px;font-size:12px;color:var(--g2);min-height:44px;transition:all .18s;display:flex;align-items:center;}
+.drop-zone.over{background:rgba(84,160,255,.12);border-color:var(--sky);}
+.drop-zone.filled{border-style:solid;background:rgba(29,209,161,.15);border-color:var(--mint);color:var(--mint);font-weight:700;}
+.drop-zone.wrong{background:rgba(255,107,107,.12);border-color:var(--coral);animation:shake .35s ease;}
+.match-label{font-size:12px;color:var(--g2);margin-bottom:3px;}
+
+/* ── ACTIVITY: SORT / SEQUENCE ── */
+.sort-list{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
+.sort-item{background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);border-radius:12px;padding:12px 14px;font-size:13px;font-weight:700;color:var(--white);cursor:grab;display:flex;align-items:center;gap:10px;transition:all .18s;user-select:none;touch-action:none;}
+.sort-item:hover{background:rgba(255,255,255,.1);}
+.sort-item.dragging{opacity:.45;}
+.sort-handle{width:18px;height:14px;display:flex;flex-direction:column;gap:3px;flex-shrink:0;}
+.sort-handle span{display:block;height:2px;background:var(--g2);border-radius:1px;}
+.sort-item.correct-pos{background:rgba(29,209,161,.18);border-color:var(--mint);}
+.sort-item.wrong-pos{background:rgba(255,107,107,.12);border-color:var(--coral);}
+
+/* ── ACTIVITY: WORD SORT (category) ── */
+.word-bank{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;min-height:48px;padding:10px;background:rgba(255,255,255,.04);border-radius:12px;border:1.5px dashed rgba(255,255,255,.15);}
+.word-chip{background:rgba(254,202,87,.2);border:1.5px solid rgba(254,202,87,.4);border-radius:99px;padding:6px 14px;font-size:12px;font-weight:700;color:var(--amber);cursor:pointer;transition:all .15s;user-select:none;touch-action:none;}
+.word-chip:hover{background:rgba(254,202,87,.35);transform:scale(1.04);}
+.word-chip.placed{opacity:.35;pointer-events:none;}
+.category-box{background:rgba(255,255,255,.04);border:1.5px dashed rgba(255,255,255,.15);border-radius:12px;padding:12px;margin-bottom:8px;min-height:52px;}
+.category-title{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px;}
+.category-chips{display:flex;flex-wrap:wrap;gap:6px;min-height:30px;}
+.cat-placed{border-radius:99px;padding:5px 12px;font-size:12px;font-weight:700;}
+
+/* ── ACTIVITY: TRUE/FALSE SWIPE ── */
+.tf-card{background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);border-radius:16px;padding:22px 20px;margin-bottom:12px;text-align:center;transition:all .2s;}
+.tf-statement{font-size:15px;font-weight:700;color:var(--white);line-height:1.55;margin-bottom:16px;}
+.tf-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.tf-btn{border:none;border-radius:12px;padding:14px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .15s;}
+.tf-btn.t{background:rgba(29,209,161,.2);color:var(--mint);border:1.5px solid rgba(29,209,161,.4);}
+.tf-btn.f{background:rgba(255,107,107,.2);color:var(--coral);border:1.5px solid rgba(255,107,107,.4);}
+.tf-btn:hover{transform:scale(1.03);}
+.tf-btn.correct{animation:pop .3s ease;}
+.tf-btn.wrong{animation:shake .35s ease;}
+@keyframes pop{0%{transform:scale(1);}50%{transform:scale(1.08);}100%{transform:scale(1);}
+}
+.tf-feedback{border-radius:12px;padding:11px 14px;font-size:13px;font-weight:700;display:none;margin-top:10px;}
+.tf-score{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--g2);font-family:'Space Mono',monospace;margin-bottom:8px;}
+.tf-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.15);}
+.tf-dot.t{background:var(--mint);}
+.tf-dot.f{background:var(--coral);}
+
+/* ── ACTIVITY: FILL IN BLANKS ── */
+.blank-sentence{font-size:14px;font-weight:700;color:var(--white);line-height:2.4;margin-bottom:10px;}
+.blank{display:inline-block;min-width:100px;border-bottom:2px solid var(--sky);padding:0 6px;color:var(--sky);font-weight:800;cursor:pointer;text-align:center;border-radius:4px 4px 0 0;transition:all .15s;}
+.blank:hover{background:rgba(84,160,255,.1);}
+.blank.filled{border-color:var(--mint);color:var(--mint);background:rgba(29,209,161,.1);}
+.blank.wrong{border-color:var(--coral);color:var(--coral);animation:shake .35s ease;}
+.word-options{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.word-opt{background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.18);border-radius:99px;padding:7px 15px;font-size:12px;font-weight:700;color:var(--white);cursor:pointer;transition:all .15s;}
+.word-opt:hover{background:rgba(255,255,255,.16);transform:scale(1.04);}
+.word-opt.used{opacity:.3;pointer-events:none;}
+
+/* ── ACTIVITY: QUIZ (MC) ── */
+.opt{background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);border-radius:12px;padding:12px 15px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--white);cursor:pointer;width:100%;text-align:left;margin-top:8px;transition:all .18s;display:flex;align-items:center;gap:10px;}
+.opt:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.28);}
+.opt.correct{background:rgba(29,209,161,.18);border-color:var(--mint);color:#A8FFE9;}
+.opt.wrong{background:rgba(255,107,107,.15);border-color:var(--coral);color:#FFD0D0;}
+.opt.dis{pointer-events:none;opacity:.45;}
+.opt-letter{width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;}
+.qfb{border-radius:12px;padding:11px 14px;margin-top:10px;font-size:13px;font-weight:700;display:none;}
+
+/* ── TIMER ── */
+.timer-card{background:rgba(254,202,87,.08);border:1.5px solid rgba(254,202,87,.3);border-radius:var(--rl);padding:22px;text-align:center;margin-bottom:12px;}
+.timer-num{font-family:'Space Mono',monospace;font-size:54px;font-weight:700;color:var(--amber);letter-spacing:-2px;margin:6px 0;transition:color .3s;}
+.timer-lbl{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--amber);opacity:.7;}
+.tbtn{border:none;border-radius:99px;padding:9px 20px;font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;cursor:pointer;transition:all .15s;margin:4px;}
+.tbtn.go{background:var(--amber);color:#1A1200;}
+.tbtn.sec{background:rgba(254,202,87,.15);color:var(--amber);border:1.5px solid rgba(254,202,87,.3);}
+
+/* CHECKLIST */
+.chk-row{display:flex;align-items:flex-start;gap:11px;padding:10px 0;border-bottom:0.5px solid rgba(255,255,255,.07);cursor:pointer;}
+.chk-box{width:24px;height:24px;border-radius:50%;border:2px solid rgba(255,255,255,.25);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;margin-top:2px;}
+.chk-label{font-size:13px;font-weight:700;color:var(--white);}
+.chk-desc{font-size:11px;color:var(--g2);margin-top:2px;line-height:1.5;}
+
+/* TITLE */
+.hero-emoji{font-size:60px;display:block;animation:float 3s ease-in-out infinite;margin-bottom:8px;}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+.tag{display:inline-flex;align-items:center;border-radius:99px;padding:5px 13px;font-size:11px;font-weight:700;margin:3px;}
+
+/* BLOCK VIZ */
+.block-stack{background:rgba(0,0,0,.35);border-radius:12px;padding:14px;font-family:'Space Mono',monospace;font-size:11px;line-height:2;margin-top:10px;}
+.b-e{color:var(--amber);}
+.b-c{color:var(--pink);}
+.b-v{color:var(--coral);}
+.b-l{color:var(--sky);}
+.b-i{padding-left:18px;}
+.b-ii{padding-left:36px;}
+
+/* RULE ROWS */
+.rule-row{display:flex;gap:12px;align-items:flex-start;padding:13px 15px;border-radius:12px;margin-bottom:8px;}
+.rnum{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;flex-shrink:0;}
+
+/* SCRATCH PALETTE GRID */
+.pal-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+.pal-card{border-radius:12px;padding:14px;}
+.pal-t{font-size:12px;font-weight:800;margin-bottom:5px;}
+.pal-d{font-size:11.5px;line-height:1.6;}
+.blk{display:inline-block;border-radius:6px;padding:4px 10px;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;margin:2px;}
+
+/* GALLERY */
+.sticky{padding:14px 16px;border-radius:4px;font-size:13px;font-weight:700;box-shadow:3px 4px 0 rgba(0,0,0,.25);}
+
+/* SCORE DISPLAY */
+.score-ring{width:80px;height:80px;border-radius:50%;border:4px solid var(--mint);display:flex;align-items:center;justify-content:center;flex-direction:column;margin:0 auto 10px;}
+.score-big{font-size:24px;font-weight:900;color:var(--white);}
+.score-sub{font-size:9px;color:var(--g2);font-family:'Space Mono',monospace;}
+
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<div class="pbar-wrap"><div class="pbar-fill" id="pbar"></div></div>
+
+<nav class="nav">
+  <div class="nav-l">
+    <div class="nav-t">🎮 Let's Build Our Game!</div>
+    <div class="nav-s">YEAR 5 · DIGITAL TECHNOLOGIES · TERM 3 WEEK 4</div>
+  </div>
+  <div class="pill" id="nav-pill">1 / 11</div>
+</nav>
+
+<div class="slides">
+
+<!-- ══ S0: TITLE ══ -->
+<div class="slide on" id="s0">
+  <div style="text-align:center;padding:24px 0 12px;">
+    <span class="hero-emoji">🎮</span>
+    <div style="font-size:30px;font-weight:900;line-height:1.15;margin-bottom:8px;">Time to Build!</div>
+    <div style="font-size:14px;color:var(--g1);line-height:1.7;max-width:380px;margin:0 auto 16px;">Your design document is your blueprint. Today you become the programmer. Let's bring your game to life in Scratch.</div>
+    <div>
+      <span class="tag" style="background:rgba(255,107,107,.2);color:var(--coral);border:1px solid rgba(255,107,107,.3);">60 min</span>
+      <span class="tag" style="background:rgba(29,209,161,.2);color:var(--mint);border:1px solid rgba(29,209,161,.3);">Scratch coding</span>
+      <span class="tag" style="background:rgba(84,160,255,.2);color:var(--sky);border:1px solid rgba(84,160,255,.3);">Year 5</span>
+    </div>
+  </div>
+  <div class="card" style="margin-top:6px;">
+    <div class="slbl" style="color:var(--g2);">Today's plan</div>
+    <div style="display:grid;gap:7px;margin-top:6px;">
+      <div style="display:flex;gap:10px;align-items:flex-start;"><div style="width:26px;height:26px;border-radius:50%;background:rgba(255,107,107,.25);color:var(--coral);font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">1</div><div><div style="font-size:13px;font-weight:800;">Review activities — 10 min</div><div style="font-size:11px;color:var(--g2);">5 different hands-on activities from last lesson</div></div></div>
+      <div style="display:flex;gap:10px;align-items:flex-start;"><div style="width:26px;height:26px;border-radius:50%;background:rgba(84,160,255,.25);color:var(--sky);font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">2</div><div><div style="font-size:13px;font-weight:800;">Handoff + Scratch toolkit — 5 min</div><div style="font-size:11px;color:var(--g2);">Switch to programmer. Know your blocks.</div></div></div>
+      <div style="display:flex;gap:10px;align-items:flex-start;"><div style="width:26px;height:26px;border-radius:50%;background:rgba(29,209,161,.25);color:var(--mint);font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">3</div><div><div style="font-size:13px;font-weight:800;">Build time — 45 min</div><div style="font-size:11px;color:var(--g2);">Open Scratch. Follow your design doc.</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S1: DRAG & DROP MATCH ══ -->
+<div class="slide" id="s1">
+  <div class="accent" style="background:linear-gradient(135deg,rgba(95,39,205,.28),rgba(84,160,255,.18));border:1px solid rgba(95,39,205,.4);">
+    <div class="slbl" style="color:#C4A0F0;">Review activity 1 of 5 · Drag & drop</div>
+    <div class="sh">Match the term to the meaning</div>
+    <div class="sb">Drag each term on the left and drop it onto its correct meaning on the right.</div>
+  </div>
+  <div class="match-wrap">
+    <div>
+      <div class="match-col-title">Terms</div>
+      <div class="match-source" id="drag-source"></div>
+    </div>
+    <div>
+      <div class="match-col-title">Meanings</div>
+      <div id="drop-targets"></div>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+    <button class="nbtn sec" style="font-size:12px;padding:8px 16px;" onclick="checkMatch()">Check answers</button>
+    <button class="nbtn sec" style="font-size:12px;padding:8px 16px;" onclick="resetMatch()">Reset</button>
+  </div>
+  <div id="match-fb" style="display:none;" class="card" style="margin-top:10px;"></div>
+</div>
+
+<!-- ══ S2: SEQUENCE SORT ══ -->
+<div class="slide" id="s2">
+  <div class="accent" style="background:linear-gradient(135deg,rgba(29,209,161,.22),rgba(84,160,255,.15));border:1px solid rgba(29,209,161,.38);">
+    <div class="slbl" style="color:var(--mint);">Review activity 2 of 5 · Sequence sort</div>
+    <div class="sh">Put the build steps in the right order</div>
+    <div class="sb">Drag the steps into the correct order for building your game. What do you do first, second, third…?</div>
+  </div>
+  <div class="sort-list" id="sort-list"></div>
+  <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+    <button class="nbtn sec" style="font-size:12px;padding:8px 16px;" onclick="checkSort()">Check order</button>
+    <button class="nbtn sec" style="font-size:12px;padding:8px 16px;" onclick="resetSort()">Shuffle again</button>
+  </div>
+  <div id="sort-fb" style="display:none;border-radius:12px;padding:12px 14px;margin-top:10px;font-size:13px;font-weight:700;"></div>
+</div>
+
+<!-- ══ S3: WORD SORT (CATEGORIES) ══ -->
+<div class="slide" id="s3">
+  <div class="accent" style="background:linear-gradient(135deg,rgba(255,107,107,.22),rgba(254,202,87,.12));border:1px solid rgba(255,107,107,.35);">
+    <div class="slbl" style="color:var(--coral);">Review activity 3 of 5 · Word sort</div>
+    <div class="sh">Sort these into the right category</div>
+    <div class="sb">Tap a word from the bank, then tap the category it belongs to. Where does each design term fit?</div>
+  </div>
+  <div style="margin-bottom:8px;">
+    <div style="font-size:11px;font-weight:700;color:var(--g2);letter-spacing:.5px;margin-bottom:6px;font-family:'Space Mono',monospace;">WORD BANK — tap a word to select it</div>
+    <div class="word-bank" id="word-bank"></div>
+  </div>
+  <div id="categories"></div>
+  <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;">
+    <button class="nbtn sec" style="font-size:12px;padding:8px 16px;" onclick="checkWordSort()">Check answers</button>
+    <button class="nbtn sec" style="font-size:12px;padding:8px 16px;" onclick="resetWordSort()">Reset</button>
+  </div>
+  <div id="wordsort-fb" style="display:none;border-radius:12px;padding:12px 14px;margin-top:10px;font-size:13px;font-weight:700;"></div>
+</div>
+
+<!-- ══ S4: TRUE / FALSE ══ -->
+<div class="slide" id="s4">
+  <div class="accent" style="background:linear-gradient(135deg,rgba(254,202,87,.2),rgba(255,107,107,.12));border:1px solid rgba(254,202,87,.35);">
+    <div class="slbl" style="color:var(--amber);">Review activity 4 of 5 · True or false</div>
+    <div class="sh">True or False?</div>
+    <div class="sb">Read each statement and decide — is it true or false? Tap your answer.</div>
+  </div>
+  <div id="tf-score-row" class="tf-score"></div>
+  <div id="tf-area"></div>
+</div>
+
+<!-- ══ S5: FILL IN THE BLANK ══ -->
+<div class="slide" id="s5">
+  <div class="accent" style="background:linear-gradient(135deg,rgba(255,159,243,.2),rgba(95,39,205,.15));border:1px solid rgba(255,159,243,.35);">
+    <div class="slbl" style="color:var(--pink);">Review activity 5 of 5 · Fill in the blanks</div>
+    <div class="sh">Complete the sentences</div>
+    <div class="sb">Tap a word from the bank below, then tap the blank it belongs to. Complete all four sentences.</div>
+  </div>
+  <div id="blanks-area"></div>
+  <div id="blanks-bank" style="margin-top:12px;"></div>
+  <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+    <button class="nbtn sec" style="font-size:12px;padding:8px 16px;" onclick="checkBlanks()">Check answers</button>
+    <button class="nbtn sec" style="font-size:12px;padding:8px 16px;" onclick="resetBlanks()">Reset</button>
+  </div>
+  <div id="blanks-fb" style="display:none;border-radius:12px;padding:12px 14px;margin-top:10px;font-size:13px;font-weight:700;"></div>
+</div>
+
+<!-- ══ S6: REVIEW SCORE ══ -->
+<div class="slide" id="s6">
+  <div class="accent" style="background:linear-gradient(135deg,rgba(29,209,161,.22),rgba(95,39,205,.15));border:1px solid rgba(29,209,161,.35);text-align:center;">
+    <div class="slbl" style="color:var(--mint);text-align:center;">Review complete!</div>
+    <div class="sh" style="text-align:center;">Nice work — you're warmed up</div>
+  </div>
+  <div class="card" style="text-align:center;">
+    <div class="score-ring"><div class="score-big" id="total-score">5/5</div><div class="score-sub">activities</div></div>
+    <div style="font-size:14px;color:var(--g1);margin-bottom:12px;">All 5 design concepts from last lesson — back in your head and ready to use while you build.</div>
+    <div style="font-size:13px;font-weight:800;color:var(--white);">Now switch from designer to programmer. Open your design document. Open Scratch. Let's go.</div>
+  </div>
+  <div class="card" style="background:rgba(254,202,87,.08);border-color:rgba(254,202,87,.25);">
+    <div style="font-size:12px;font-weight:800;color:var(--amber);margin-bottom:6px;">Quick reminder before you open Scratch</div>
+    <div style="font-size:13px;color:#FFF0B8;line-height:1.7;">Your design document says what to build. Build the <strong style="color:var(--amber);">core loop first</strong> — the thing that makes the game actually playable. Extras only after the core works.</div>
+  </div>
+</div>
+
+<!-- ══ S7: SCRATCH TOOLKIT ══ -->
+<div class="slide" id="s7">
+  <div class="accent" style="background:linear-gradient(135deg,rgba(84,160,255,.22),rgba(95,39,205,.15));border:1px solid rgba(84,160,255,.35);">
+    <div class="slbl" style="color:var(--sky);">Scratch toolkit · 5 min</div>
+    <div class="sh">The 4 palettes you need today</div>
+    <div class="sb">You know Scratch. Here are the specific blocks your game design calls for — find these first.</div>
+  </div>
+  <div class="pal-grid">
+    <div class="pal-card" style="background:rgba(254,202,87,.12);border:1px solid rgba(254,202,87,.3);">
+      <div class="pal-t" style="color:var(--amber);">🟡 Events</div>
+      <div class="pal-d" style="color:#FFF0B8;">Your game's power button.</div>
+      <div style="margin-top:7px;"><span class="blk" style="background:rgba(254,202,87,.25);color:var(--amber);">when 🏳 clicked</span><span class="blk" style="background:rgba(254,202,87,.25);color:var(--amber);">when key pressed</span></div>
+    </div>
+    <div class="pal-card" style="background:rgba(255,159,243,.12);border:1px solid rgba(255,159,243,.3);">
+      <div class="pal-t" style="color:var(--pink);">🟣 Control</div>
+      <div class="pal-d" style="color:#FFD6F9;">Your algorithm as blocks.</div>
+      <div style="margin-top:7px;"><span class="blk" style="background:rgba(255,159,243,.2);color:var(--pink);">if then</span><span class="blk" style="background:rgba(255,159,243,.2);color:var(--pink);">repeat</span><span class="blk" style="background:rgba(255,159,243,.2);color:var(--pink);">forever</span></div>
+    </div>
+    <div class="pal-card" style="background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.3);">
+      <div class="pal-t" style="color:var(--coral);">🔴 Variables</div>
+      <div class="pal-d" style="color:#FFD0D0;">Score, lives, timer.</div>
+      <div style="margin-top:7px;"><span class="blk" style="background:rgba(255,107,107,.2);color:var(--coral);">make a variable</span><span class="blk" style="background:rgba(255,107,107,.2);color:var(--coral);">set score to 0</span></div>
+    </div>
+    <div class="pal-card" style="background:rgba(84,160,255,.12);border:1px solid rgba(84,160,255,.3);">
+      <div class="pal-t" style="color:var(--sky);">🔵 Looks + Motion</div>
+      <div class="pal-d" style="color:#B8D8FF;">Screens, sprites, movement.</div>
+      <div style="margin-top:7px;"><span class="blk" style="background:rgba(84,160,255,.2);color:var(--sky);">switch backdrop</span><span class="blk" style="background:rgba(84,160,255,.2);color:var(--sky);">move steps</span></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:2px;">
+    <div style="font-size:12px;font-weight:800;color:var(--g2);margin-bottom:6px;">Sample: core game loop in Scratch blocks</div>
+    <div class="block-stack">
+      <div class="b-e">when 🏳 clicked</div>
+      <div class="b-v">set [score] to (0) · set [lives] to (3)</div>
+      <div class="b-l">switch backdrop to [Start Screen]</div>
+      <div class="b-c">forever</div>
+      <div class="b-c b-i">if &lt;touching [Enemy]&gt; then</div>
+      <div class="b-v b-ii">change [lives] by (-1)</div>
+      <div class="b-c b-i">if &lt;[lives] = 0&gt; then</div>
+      <div class="b-l b-ii">switch backdrop to [Game Over]</div>
+      <div class="b-c b-i">end · end</div>
+      <div class="b-c">end</div>
+    </div>
+    <div style="font-size:11px;color:var(--g2);margin-top:7px;font-family:'Space Mono',monospace;">This is your flowchart — now as blocks. Check your algorithm — does your game follow this pattern?</div>
+  </div>
+</div>
+
+<!-- ══ S8: BUILD RULES + TIMER ══ -->
+<div class="slide" id="s8">
+  <div class="accent" style="background:linear-gradient(135deg,rgba(254,202,87,.18),rgba(255,107,107,.12));border:1px solid rgba(254,202,87,.3);">
+    <div class="slbl" style="color:var(--amber);">Build time! · 45 min</div>
+    <div class="sh">Open Scratch — start building now</div>
+  </div>
+  <div class="timer-card">
+    <div class="timer-lbl">Time remaining</div>
+    <div class="timer-num" id="t-display">45:00</div>
+    <div style="margin-top:10px;"><button class="tbtn go" onclick="startT()">▶ Start</button><button class="tbtn sec" onclick="pauseT()">⏸ Pause</button><button class="tbtn sec" onclick="resetT()">↺ Reset</button></div>
+  </div>
+  <div class="rule-row" style="background:rgba(84,160,255,.12);border:1px solid rgba(84,160,255,.25);">
+    <div class="rnum" style="background:rgba(84,160,255,.3);color:var(--sky);">1</div>
+    <div><div style="font-size:13px;font-weight:800;color:var(--sky);">Check design doc before every new feature</div><div style="font-size:12px;color:#B8D8FF;margin-top:2px;line-height:1.5;">Not in the doc = not built today.</div></div>
+  </div>
+  <div class="rule-row" style="background:rgba(29,209,161,.12);border:1px solid rgba(29,209,161,.25);">
+    <div class="rnum" style="background:rgba(29,209,161,.3);color:var(--mint);">2</div>
+    <div><div style="font-size:13px;font-weight:800;color:var(--mint);">Test after every change — run, break, fix</div><div style="font-size:12px;color:#A8FFE9;margin-top:2px;line-height:1.5;">Click green flag after every block you add.</div></div>
+  </div>
+  <div class="rule-row" style="background:rgba(254,202,87,.1);border:1px solid rgba(254,202,87,.25);">
+    <div class="rnum" style="background:rgba(254,202,87,.3);color:var(--amber);">3</div>
+    <div><div style="font-size:13px;font-weight:800;color:var(--amber);">Stuck 3 min? Ask a neighbour first</div><div style="font-size:12px;color:#FFF0B8;margin-top:2px;line-height:1.5;">Explain it out loud — often you'll solve it yourself.</div></div>
+  </div>
+  <div class="card" style="background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.08);">
+    <div style="font-size:12px;font-weight:800;color:var(--g2);margin-bottom:7px;">BUILD ORDER — follow your storyboard</div>
+    <div style="display:grid;gap:5px;">
+      <div style="display:flex;gap:9px;align-items:center;font-size:12px;color:var(--g1);"><span style="background:rgba(29,209,161,.3);color:var(--mint);border-radius:99px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:10px;flex-shrink:0;">1</span>Start screen — what the player sees first</div>
+      <div style="display:flex;gap:9px;align-items:center;font-size:12px;color:var(--g1);"><span style="background:rgba(29,209,161,.3);color:var(--mint);border-radius:99px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:10px;flex-shrink:0;">2</span>Core mechanic — the main thing the player does</div>
+      <div style="display:flex;gap:9px;align-items:center;font-size:12px;color:var(--g1);"><span style="background:rgba(29,209,161,.3);color:var(--mint);border-radius:99px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:10px;flex-shrink:0;">3</span>Score or lives variable — create and display it</div>
+      <div style="display:flex;gap:9px;align-items:center;font-size:12px;color:var(--g1);"><span style="background:rgba(29,209,161,.3);color:var(--mint);border-radius:99px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:10px;flex-shrink:0;">4</span>Win/lose condition — your IF/THEN from the algorithm</div>
+      <div style="display:flex;gap:9px;align-items:center;font-size:12px;color:var(--g1);"><span style="background:rgba(29,209,161,.3);color:var(--mint);border-radius:99px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:10px;flex-shrink:0;">5</span>Game over screen — only after steps 1–4 work</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S9: CHECK-IN ══ -->
+<div class="slide" id="s9">
+  <div class="accent" style="background:linear-gradient(135deg,rgba(255,159,243,.2),rgba(95,39,205,.15));border:1px solid rgba(255,159,243,.3);">
+    <div class="slbl" style="color:var(--pink);">Halfway check-in · Self-assessment</div>
+    <div class="sh">How's your build going?</div>
+    <div class="sb">Pause for 60 seconds. Tick what you have built so far.</div>
+  </div>
+  <div class="card" id="checklist-card">
+    <div id="clist"></div>
+    <div style="font-size:12px;color:var(--g2);text-align:center;margin-top:10px;font-family:'Space Mono',monospace;" id="cprog">0 of 5 complete</div>
+  </div>
+  <div class="card" style="background:rgba(255,159,243,.08);border-color:rgba(255,159,243,.22);">
+    <div style="font-size:13px;font-weight:800;color:var(--pink);margin-bottom:5px;">Behind? That's okay.</div>
+    <div style="font-size:13px;color:#FFD6F9;line-height:1.7;">Finish ONE thing completely before starting the next. A simple working game beats a broken complex one every time.</div>
+  </div>
+  <div class="card" style="background:rgba(84,160,255,.08);border-color:rgba(84,160,255,.22);">
+    <div style="font-size:13px;font-weight:800;color:var(--sky);margin-bottom:5px;">Ahead? Check your success criteria.</div>
+    <div style="font-size:13px;color:#B8D8FF;line-height:1.7;">Does your game meet what you wrote in your design document? If yes — add a bonus feature. If no — fix the gap first.</div>
+  </div>
+</div>
+
+<!-- ══ S10: GALLERY WALK ══ -->
+<div class="slide" id="s10">
+  <div class="accent" style="background:linear-gradient(135deg,rgba(29,209,161,.22),rgba(84,160,255,.15));border:1px solid rgba(29,209,161,.35);">
+    <div class="slbl" style="color:var(--mint);">Wrap-up · Gallery walk · 5 min</div>
+    <div class="sh">Leave your game running — go explore!</div>
+    <div class="sb">Walk around. Play your classmates' games. Leave one sticky note on each screen you visit.</div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+    <div class="sticky" style="background:var(--amber);color:#1A1200;transform:rotate(-2deg);">💛 What works well in this game?<br><br><em style="font-size:11px;opacity:.7;">(something specific)</em></div>
+    <div class="sticky" style="background:var(--coral);color:var(--white);transform:rotate(1.5deg);">❓ One question I have about how this was built...</div>
+  </div>
+  <div class="card">
+    <div style="font-size:13px;font-weight:800;color:var(--white);margin-bottom:7px;">After the walk — 2 minutes to improve</div>
+    <div style="font-size:13px;color:var(--g1);line-height:1.7;">Read your sticky notes. Is there one thing you can fix or improve right now based on the feedback?</div>
+  </div>
+  <div class="card" style="background:rgba(254,202,87,.08);border-color:rgba(254,202,87,.25);">
+    <div style="font-size:13px;font-weight:800;color:var(--amber);margin-bottom:7px;">Exit ticket</div>
+    <div style="display:grid;gap:6px;">
+      <div style="font-size:13px;color:#FFF0B8;display:flex;gap:8px;">📋 <span>Share your Scratch project with your teacher</span></div>
+      <div style="font-size:13px;color:#FFF0B8;display:flex;gap:8px;">✅ <span>Tell your partner — does your game meet your success criteria?</span></div>
+      <div style="font-size:13px;color:#FFF0B8;display:flex;gap:8px;">🔜 <span>Write one thing you will finish or improve next lesson</span></div>
+    </div>
+  </div>
+  <div style="text-align:center;padding:18px 0 4px;">
+    <div style="font-size:28px;margin-bottom:7px;">🎮</div>
+    <div style="font-size:15px;font-weight:900;color:var(--white);margin-bottom:4px;">Great building today!</div>
+    <div style="font-size:13px;color:var(--g2);">Next lesson — continue building and test against your success criteria.</div>
+  </div>
+</div>
+
+</div><!-- end slides -->
+
+<div class="bnav">
+  <button class="nbtn sec" id="pbtn" onclick="go(-1)">← Back</button>
+  <div class="dots" id="dotwrap"></div>
+  <button class="nbtn pri" id="fwdbtn" onclick="go(1)">Next →</button>
+</div>
+
+<script>
+const TOTAL=11;let cur=0;
+
+/* ══ DRAG & DROP MATCH ══ */
+const matchPairs=[
+  {term:"Algorithm",meaning:"A step-by-step recipe the game follows",pair:0},
+  {term:"Competing factors",meaning:"Time, skills, resources & features you must balance",pair:1},
+  {term:"Success criteria",meaning:"A must-do checklist written before building",pair:2},
+  {term:"User input",meaning:"What the player does — stored in a variable",pair:3},
+  {term:"Storyboard",meaning:"A comic-strip sketch of each game screen",pair:4},
+];
+let dragEl=null,matchDone=0,matchCorrect=0;
+
+function buildMatch(){
+  const src=document.getElementById('drag-source');
+  const tgt=document.getElementById('drop-targets');
+  src.innerHTML='';tgt.innerHTML='';
+  matchDone=0;matchCorrect=0;
+
+  const shuffled=[...matchPairs].sort(()=>Math.random()-.5);
+  const tgtOrder=[...matchPairs].sort(()=>Math.random()-.5);
+
+  shuffled.forEach((p,i)=>{
+    const d=document.createElement('div');
+    d.className='drag-chip';d.textContent=p.term;
+    d.dataset.pair=p.pair;d.draggable=true;d.id='chip-'+p.pair;
+    d.addEventListener('dragstart',e=>{dragEl=d;d.classList.add('dragging');e.dataTransfer.setData('text/plain',p.pair);});
+    d.addEventListener('dragend',()=>d.classList.remove('dragging'));
+    // touch
+    d.addEventListener('touchstart',e=>{dragEl=d;d.style.opacity='.5';},{passive:true});
+    d.addEventListener('touchend',e=>{d.style.opacity='1';handleTouchDrop(e);},{passive:true});
+    src.appendChild(d);
+  });
+
+  tgtOrder.forEach((p,i)=>{
+    const wrap=document.createElement('div');wrap.style.marginBottom='7px';
+    const lbl=document.createElement('div');lbl.className='match-label';lbl.textContent=p.meaning;
+    const dz=document.createElement('div');
+    dz.className='drop-zone';dz.dataset.pair=p.pair;dz.textContent='Drop here...';
+    dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over');});
+    dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+    dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('over');handleDrop(dz,parseInt(e.dataTransfer.getData('text/plain')));});
+    wrap.appendChild(lbl);wrap.appendChild(dz);tgt.appendChild(wrap);
+  });
+}
+
+function handleDrop(dz,pairId){
+  if(dz.classList.contains('filled'))return;
+  const chip=document.getElementById('chip-'+pairId);
+  if(!chip||chip.classList.contains('matched'))return;
+  if(parseInt(dz.dataset.pair)===pairId){
+    dz.textContent=chip.textContent;
+    dz.classList.add('filled');chip.classList.add('matched');
+    matchDone++;matchCorrect++;
+    if(matchDone===matchPairs.length)showMatchResult();
+  } else {
+    dz.classList.add('wrong');chip.classList.add('wrong-flash');
+    setTimeout(()=>{dz.classList.remove('wrong');chip.classList.remove('wrong-flash');},500);
+  }
+}
+
+function handleTouchDrop(e){
+  const t=e.changedTouches[0];
+  const el=document.elementFromPoint(t.clientX,t.clientY);
+  if(!el)return;
+  const dz=el.closest('.drop-zone');
+  if(dz&&dragEl)handleDrop(dz,parseInt(dragEl.dataset.pair));
+  dragEl=null;
+}
+
+function showMatchResult(){
+  const fb=document.getElementById('match-fb');fb.style.display='block';
+  fb.style.background='rgba(29,209,161,.2)';fb.style.color='#A8FFE9';
+  fb.innerHTML='<div style="font-size:14px;font-weight:800;margin-bottom:4px;">All matched! ✓</div><div style="font-size:12px;">You know your design terms. Now you will use them while building.</div>';
+}
+function checkMatch(){
+  const dzs=document.querySelectorAll('.drop-zone');
+  let all=true;dzs.forEach(dz=>{if(!dz.classList.contains('filled'))all=false;});
+  const fb=document.getElementById('match-fb');fb.style.display='block';
+  if(all){fb.style.background='rgba(29,209,161,.2)';fb.style.color='#A8FFE9';fb.innerHTML='All matched correctly!';}
+  else{fb.style.background='rgba(254,202,87,.15)';fb.style.color='var(--amber)';fb.innerHTML='Some blanks are still empty — keep going!';}
+}
+function resetMatch(){document.getElementById('match-fb').style.display='none';buildMatch();}
+
+/* ══ SEQUENCE SORT ══ */
+const correctOrder=[
+  "Look at your design document and storyboard",
+  "Set up the start screen — what the player sees first",
+  "Create your variables (score, lives)",
+  "Build the core mechanic — what the player does",
+  "Add the win or lose condition using IF/THEN",
+  "Build the game over or end screen",
+  "Test and fix everything before adding extras",
+];
+let sortDragging=null;
+
+function buildSort(){
+  const list=document.getElementById('sort-list');list.innerHTML='';
+  const shuffled=[...correctOrder].sort(()=>Math.random()-.5);
+  document.getElementById('sort-fb').style.display='none';
+  shuffled.forEach((txt,i)=>{
+    const d=document.createElement('div');d.className='sort-item';d.draggable=true;
+    d.innerHTML=`<div class="sort-handle"><span></span><span></span><span></span></div><span style="font-size:12px;">${txt}</span>`;
+    d.addEventListener('dragstart',()=>{sortDragging=d;d.classList.add('dragging');});
+    d.addEventListener('dragend',()=>{d.classList.remove('dragging');});
+    d.addEventListener('dragover',e=>{e.preventDefault();if(sortDragging!==d){const r=list.getBoundingClientRect(),mid=d.getBoundingClientRect().top+d.offsetHeight/2;list.insertBefore(sortDragging,e.clientY<mid?d:d.nextSibling);}});
+    // touch drag
+    d.addEventListener('touchstart',e=>{sortDragging=d;d.style.opacity='.5';},{passive:true});
+    d.addEventListener('touchmove',e=>{
+      const t=e.touches[0];const el=document.elementFromPoint(t.clientX,t.clientY);
+      if(el&&el.closest('.sort-item')&&el.closest('.sort-item')!==sortDragging){
+        const target=el.closest('.sort-item');
+        list.insertBefore(sortDragging,target);
+      }
+    },{passive:true});
+    d.addEventListener('touchend',()=>{d.style.opacity='1';},{passive:true});
+    list.appendChild(d);
+  });
+}
+
+function checkSort(){
+  const items=[...document.querySelectorAll('#sort-list .sort-item')].map(d=>d.querySelector('span:last-child').textContent);
+  const correct=JSON.stringify(items)===JSON.stringify(correctOrder);
+  const fb=document.getElementById('sort-fb');fb.style.display='block';
+  document.querySelectorAll('#sort-list .sort-item').forEach((d,i)=>{
+    d.classList.remove('correct-pos','wrong-pos');
+    if(items[i]===correctOrder[i])d.classList.add('correct-pos');
+    else d.classList.add('wrong-pos');
+  });
+  if(correct){fb.style.background='rgba(29,209,161,.2)';fb.style.color='#A8FFE9';fb.textContent='Perfect order! This is exactly how you should approach building your game.';}
+  else{fb.style.background='rgba(254,202,87,.15)';fb.style.color='#FFF0B8';fb.textContent='Not quite — the green steps are in the right place. Try moving the orange ones.';}
+}
+function resetSort(){buildSort();}
+
+/* ══ WORD SORT ══ */
+const wordCategories=[
+  {id:'design',title:'Design document',color:C='rgba(84,160,255,.15)',border:'rgba(84,160,255,.35)',tc:V='var(--sky)',words:['storyboard','success criteria','algorithm','target audience','flowchart']},
+  {id:'scratch',title:'Scratch concepts',color:'rgba(255,159,243,.15)',border:'rgba(255,159,243,.35)',tc:'var(--pink)',words:['sprite','backdrop','variable','event','forever loop']},
+  {id:'design-think',title:'Design thinking',color:'rgba(254,202,87,.12)',border:'rgba(254,202,87,.3)',tc:'var(--amber)',words:['competing factors','user input','iteration','prototype','features']},
+];
+let wSelected=null,wPlacements={};
+
+function buildWordSort(){
+  wSelected=null;wPlacements={};
+  const allWords=wordCategories.flatMap(c=>c.words).sort(()=>Math.random()-.5);
+  const bank=document.getElementById('word-bank');bank.innerHTML='';
+  allWords.forEach(w=>{
+    const d=document.createElement('div');d.className='word-chip';d.textContent=w;d.dataset.word=w;
+    d.onclick=()=>selectWord(d);bank.appendChild(d);
+  });
+  const cats=document.getElementById('categories');cats.innerHTML='';
+  wordCategories.forEach(cat=>{
+    const box=document.createElement('div');box.className='category-box';
+    box.style.background=cat.color;box.style.borderColor=cat.border;
+    const t=document.createElement('div');t.className='category-title';t.style.color=cat.tc;t.textContent=cat.title;
+    const chips=document.createElement('div');chips.className='category-chips';chips.id='cat-'+cat.id;
+    box.appendChild(t);box.appendChild(chips);
+    box.onclick=()=>placeWord(cat);cats.appendChild(box);
+  });
+  document.getElementById('wordsort-fb').style.display='none';
+}
+function selectWord(d){
+  document.querySelectorAll('.word-chip').forEach(c=>c.style.outline='none');
+  if(d.classList.contains('placed'))return;
+  wSelected=d.dataset.word;d.style.outline='2px solid var(--amber)';
+}
+function placeWord(cat){
+  if(!wSelected)return;
+  wPlacements[wSelected]=cat.id;
+  const chips=document.getElementById('cat-'+cat.id);
+  const c=document.createElement('span');c.className='cat-placed';
+  c.style.background=cat.color;c.style.color=cat.tc;c.style.border='1px solid '+cat.border;c.textContent=wSelected;c.dataset.word=wSelected;
+  c.onclick=(e)=>{e.stopPropagation();removeWord(wSelected,cat.id,c);};
+  chips.appendChild(c);
+  const bankChip=document.querySelector(`.word-chip[data-word="${wSelected}"]`);
+  if(bankChip)bankChip.classList.add('placed');
+  wSelected=null;document.querySelectorAll('.word-chip').forEach(c=>c.style.outline='none');
+}
+function removeWord(word,catId,el){
+  delete wPlacements[word];el.remove();
+  const bankChip=document.querySelector(`.word-chip[data-word="${word}"]`);
+  if(bankChip)bankChip.classList.remove('placed');
+}
+function checkWordSort(){
+  let correct=0,total=0;
+  const correctMap={};wordCategories.forEach(cat=>cat.words.forEach(w=>correctMap[w]=cat.id));
+  Object.entries(wPlacements).forEach(([w,catId])=>{total++;if(correctMap[w]===catId)correct++;});
+  const fb=document.getElementById('wordsort-fb');fb.style.display='block';
+  if(correct===Object.keys(correctMap).length&&total===correct){fb.style.background='rgba(29,209,161,.2)';fb.style.color='#A8FFE9';fb.textContent=`All ${correct} words sorted correctly!`;}
+  else{fb.style.background='rgba(254,202,87,.15)';fb.style.color='#FFF0B8';fb.textContent=`${correct} of ${total} placed correctly. Tip: storyboard and flowchart belong to the design document!`;}
+}
+function resetWordSort(){buildWordSort();}
+
+/* ══ TRUE / FALSE ══ */
+const tfStatements=[
+  {s:"A designer writes details for someone else to build the game.",a:true,fb:"Correct! Designers write for programmers — even if that programmer is future you."},
+  {s:"The programmer should add all features at once to save time.",a:false,fb:"False — build the core loop first. Adding everything at once causes bugs that are hard to find."},
+  {s:"Competing factors means you must balance time, skills, resources and features.",a:true,fb:"Correct! Those are the four competing factors from your design lesson."},
+  {s:"A variable in Scratch can store the player's score.",a:true,fb:"Correct! Make a variable called 'score', set it to 0 when the game starts, then change it as the player plays."},
+  {s:"If your game crashes, the best fix is to delete everything and start again.",a:false,fb:"False — remove the LAST block you added and run again. That block caused the crash."},
+  {s:"Peer debugging means asking the teacher immediately when stuck.",a:false,fb:"False — ask a neighbour first. Explaining your problem out loud often solves it before anyone answers."},
+  {s:"Your storyboard shows what each screen of the game looks like.",a:true,fb:"Correct! Each box in your storyboard = one screen with labels for what the player sees and does."},
+];
+let tfIdx=0,tfScore=0,tfHistory=[];
+
+function renderTF(){
+  if(tfIdx>=tfStatements.length){showTFResult();return;}
+  const st=tfStatements[tfIdx];
+  const scoreRow=document.getElementById('tf-score-row');
+  scoreRow.innerHTML=tfHistory.map(h=>`<div class="tf-dot ${h?'t':'f'}"></div>`).join('')+
+    (tfHistory.length<tfStatements.length?'<div style="font-size:11px;color:var(--g2);margin-left:4px;">'+(tfIdx+1)+' of '+tfStatements.length+'</div>':'');
+
+  document.getElementById('tf-area').innerHTML=`
+    <div class="tf-card">
+      <div class="tf-statement">${st.s}</div>
+      <div class="tf-btns">
+        <button class="tf-btn t" onclick="answerTF(true,this)">✓ True</button>
+        <button class="tf-btn f" onclick="answerTF(false,this)">✗ False</button>
+      </div>
+      <div class="tf-feedback" id="tf-fb"></div>
+    </div>`;
+}
+function answerTF(ans,btn){
+  const st=tfStatements[tfIdx];
+  const correct=ans===st.a;
+  document.querySelectorAll('.tf-btn').forEach(b=>b.style.pointerEvents='none');
+  btn.classList.add(correct?'correct':'wrong');
+  const fb=document.getElementById('tf-fb');fb.style.display='block';
+  if(correct){tfScore++;fb.style.background='rgba(29,209,161,.18)';fb.style.color='#A8FFE9';fb.textContent='✓ '+st.fb;}
+  else{fb.style.background='rgba(255,107,107,.15)';fb.style.color='#FFD0D0';fb.textContent='✗ '+st.fb;}
+  tfHistory.push(correct);
+  setTimeout(()=>{tfIdx++;renderTF();},1800);
+}
+function showTFResult(){
+  document.getElementById('tf-score-row').innerHTML='';
+  document.getElementById('tf-area').innerHTML=`
+    <div class="card" style="text-align:center;">
+      <div style="font-size:42px;font-weight:900;color:var(--white);margin:8px 0;">${tfScore}/${tfStatements.length}</div>
+      <div style="font-size:14px;color:var(--g1);margin-top:4px;">${tfScore===tfStatements.length?'All correct — ready to build!':tfScore>=5?'Great work!':'Review the rules during build time.'}</div>
+    </div>`;
+}
+
+/* ══ FILL IN THE BLANKS ══ */
+const blankSentences=[
+  {id:0,before:"When you",blank:"test",after:"after every change, you catch bugs immediately before they build up.",word:"test"},
+  {id:1,before:"Your",blank:"design document",after:"tells you exactly what to build — check it before adding any new feature.",word:"design document"},
+  {id:2,before:"An",blank:"algorithm",after:"written in your design doc becomes the blocks you connect in Scratch.",word:"algorithm"},
+  {id:3,before:"Build the",blank:"core loop",after:"first — the thing that makes the game playable — before adding any extras.",word:"core loop"},
+];
+const blankWordBank=["algorithm","test","core loop","design document","storyboard","variable","iteration","flowchart"];
+let blankSelected=null,blankFilled={};
+
+function buildBlanks(){
+  blankSelected=null;blankFilled={};
+  const area=document.getElementById('blanks-area');area.innerHTML='';
+  blankSentences.forEach(s=>{
+    const div=document.createElement('div');div.style.marginBottom='14px';
+    div.innerHTML=`<div class="blank-sentence">${s.before} <span class="blank" id="blank-${s.id}" onclick="fillBlank(${s.id})">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> ${s.after}</div>`;
+    area.appendChild(div);
+  });
+  const bank=document.getElementById('blanks-bank');bank.innerHTML='<div style="font-size:10px;font-weight:700;letter-spacing:.7px;color:var(--g2);margin-bottom:7px;font-family:\'Space Mono\',monospace;">WORD BANK — tap a word then tap the blank</div><div class="word-options" id="blank-opts"></div>';
+  const opts=document.getElementById('blank-opts');
+  [...blankWordBank].sort(()=>Math.random()-.5).forEach(w=>{
+    const d=document.createElement('div');d.className='word-opt';d.textContent=w;d.dataset.word=w;
+    d.onclick=()=>{
+      document.querySelectorAll('.word-opt').forEach(x=>x.style.outline='none');
+      blankSelected=w;d.style.outline='2px solid var(--amber)';
+    };
+    opts.appendChild(d);
+  });
+  document.getElementById('blanks-fb').style.display='none';
+}
+function fillBlank(id){
+  if(!blankSelected)return;
+  blankFilled[id]=blankSelected;
+  const el=document.getElementById('blank-'+id);
+  el.textContent=blankSelected;el.classList.add('filled');el.classList.remove('wrong');
+  blankSelected=null;document.querySelectorAll('.word-opt').forEach(x=>x.style.outline='none');
+}
+function checkBlanks(){
+  let correct=0;
+  blankSentences.forEach(s=>{
+    const el=document.getElementById('blank-'+s.id);
+    if(blankFilled[s.id]===s.word){correct++;el.classList.add('filled');el.classList.remove('wrong');}
+    else if(blankFilled[s.id]){el.classList.add('wrong');el.classList.remove('filled');}
+  });
+  const fb=document.getElementById('blanks-fb');fb.style.display='block';
+  if(correct===blankSentences.length){fb.style.background='rgba(29,209,161,.2)';fb.style.color='#A8FFE9';fb.textContent='All correct! These are the four habits of a good programmer.';}
+  else{fb.style.background='rgba(254,202,87,.15)';fb.style.color='#FFF0B8';fb.textContent=`${correct} of ${blankSentences.length} correct. The orange blanks need a different word.`;}
+}
+function resetBlanks(){buildBlanks();}
+
+/* ══ TIMER ══ */
+let tSecs=45*60,tInt=null,tRun=false;
+function updateT(){const m=Math.floor(tSecs/60),s=tSecs%60;document.getElementById('t-display').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;document.getElementById('t-display').style.color=tSecs<=300?'var(--coral)':tSecs<=600?'var(--sky)':'var(--amber)';}
+function startT(){if(tRun)return;tRun=true;tInt=setInterval(()=>{if(tSecs<=0){clearInterval(tInt);tRun=false;document.getElementById('t-display').textContent='TIME! ⏰';return;}tSecs--;updateT();},1000);}
+function pauseT(){clearInterval(tInt);tRun=false;}
+function resetT(){clearInterval(tInt);tRun=false;tSecs=45*60;updateT();}
+
+/* ══ CHECKLIST ══ */
+const cItems=[
+  {l:"Start screen built — green flag works",d:"Can a player see the first screen?"},
+  {l:"Core mechanic working",d:"The main thing the player does"},
+  {l:"Variable created and displayed",d:"Score or lives — make it, show it"},
+  {l:"Win/lose condition coded",d:"IF → your algorithm in Scratch blocks"},
+  {l:"Game over / end screen",d:"After steps 1–4 are complete"},
+];
+let cks=new Array(cItems.length).fill(false);
+function buildChecklist(){
+  const c=document.getElementById('clist');
+  cItems.forEach((item,i)=>{
+    const d=document.createElement('div');d.className='chk-row';
+    d.innerHTML=`<div class="chk-box" id="cb${i}"></div><div><div class="chk-label">${item.l}</div><div class="chk-desc">${item.d}</div></div>`;
+    d.onclick=()=>{cks[i]=!cks[i];const cb=document.getElementById('cb'+i);if(cks[i]){cb.style.background='var(--mint)';cb.style.borderColor='var(--mint)';cb.innerHTML='<svg width="12" height="12" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';}else{cb.style.background='';cb.style.borderColor='rgba(255,255,255,.25)';cb.innerHTML='';}const done=cks.filter(Boolean).length;document.getElementById('cprog').textContent=done+' of '+cItems.length+' complete'+(done===cItems.length?' — you are ready to level up!':'');};
+    c.appendChild(d);
+  });
+}
+
+/* ══ NAV ══ */
+function buildDots(){const w=document.getElementById('dotwrap');w.innerHTML='';for(let i=0;i<TOTAL;i++){const d=document.createElement('div');d.className='dot'+(i===cur?' on':'');d.onclick=()=>goto(i);w.appendChild(d);}}
+function goto(n){document.querySelectorAll('.slide').forEach((s,i)=>s.classList.toggle('on',i===n));cur=n;document.getElementById('nav-pill').textContent=(n+1)+' / '+TOTAL;document.getElementById('pbtn').style.opacity=n===0?'0.3':'1';document.getElementById('fwdbtn').textContent=n===TOTAL-1?'Done ✓':'Next →';document.getElementById('pbar').style.width=Math.round(n/(TOTAL-1)*100)+'%';buildDots();window.scrollTo(0,0);}
+function go(d){goto(Math.max(0,Math.min(TOTAL-1,cur+d)));}
+
+buildMatch();buildSort();buildWordSort();renderTF();buildBlanks();buildChecklist();buildDots();
+document.getElementById('pbtn').style.opacity='0.3';
+</script>
+</body>
+</html>
